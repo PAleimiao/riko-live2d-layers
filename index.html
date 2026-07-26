@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Riko | CAT-01 猫系科技观察员</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Noto Sans SC', 'sans-serif'],
+                        tech: ['Orbitron', 'monospace'],
+                    },
+                    colors: {
+                        cat: {
+                            dark: '#0a0e1a',
+                            panel: '#111827',
+                            blue: '#3b82f6',
+                            cyan: '#06b6d4',
+                            purple: '#8b5cf6',
+                            pink: '#ec4899',
+                            glass: 'rgba(17, 24, 39, 0.7)',
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                        'glow': 'glow 2s ease-in-out infinite alternate',
+                        'scan': 'scan 4s linear infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        },
+                        glow: {
+                            '0%': { boxShadow: '0 0 5px #3b82f6, 0 0 10px #3b82f6' },
+                            '100%': { boxShadow: '0 0 20px #3b82f6, 0 0 40px #3b82f6' },
+                        },
+                        scan: {
+                            '0%': { transform: 'translateY(-100%)' },
+                            '100%': { transform: 'translateY(100%)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background: #0a0e1a;
+            overflow-x: hidden;
+        }
+        .grid-bg {
+            background-image: 
+                linear-gradient(rgba(59, 130, 246, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(59, 130, 246, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        .glass-panel:hover {
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 8px 40px rgba(59, 130, 246, 0.15);
+        }
+        .neon-text {
+            text-shadow: 0 0 10px rgba(59, 130, 246, 0.5), 0 0 20px rgba(59, 130, 246, 0.3);
+        }
+        .cat-paw {
+            position: absolute;
+            opacity: 0.03;
+            pointer-events: none;
+        }
+        .progress-bar {
+            background: linear-gradient(90deg, #3b82f6, #06b6d4);
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
+        .image-frame {
+            position: relative;
+            overflow: hidden;
+        }
+        .image-frame::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            z-index: 10;
+            pointer-events: none;
+        }
+        .image-frame::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent 30%,
+                rgba(59, 130, 246, 0.1) 50%,
+                transparent 70%
+            );
+            animation: scan 4s linear infinite;
+            pointer-events: none;
+        }
+        .tag {
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            transition: all 0.3s;
+        }
+        .tag:hover {
+            background: rgba(59, 130, 246, 0.3);
+            transform: translateY(-2px);
+        }
+        .nav-link {
+            position: relative;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #3b82f6, #06b6d4);
+            transition: width 0.3s;
+        }
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0e1a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 4px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+        }
+    </style>
+</head>
+<body class="text-gray-200 font-sans grid-bg min-h-screen">
+
+    <!-- 装饰猫爪 -->
+    <div class="cat-paw top-20 left-10 text-6xl">🐾</div>
+    <div class="cat-paw top-60 right-20 text-8xl">🐾</div>
+    <div class="cat-paw bottom-40 left-1/4 text-5xl">🐾</div>
+
+    <!-- 导航 -->
+    <nav class="fixed top-0 w-full z-50 glass-panel border-b border-blue-500/20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl">🐱</span>
+                    <span class="font-tech text-xl font-bold text-blue-400 neon-text tracking-wider">Riko</span>
+                    <span class="text-xs text-gray-500 border border-gray-700 rounded px-2 py-0.5">CAT-01</span>
+                </div>
+                <div class="hidden md:flex items-center gap-8">
+                    <a href="#profile" class="nav-link text-sm text-gray-300 hover:text-blue-400 transition">角色档案</a>
+                    <a href="#motion" class="nav-link text-sm text-gray-300 hover:text-blue-400 transition">动作参考</a>
+                    <a href="#background" class="nav-link text-sm text-gray-300 hover:text-blue-400 transition">直播间</a>
+                    <a href="#roadmap" class="nav-link text-sm text-gray-300 hover:text-blue-400 transition">制作路线</a>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                    <span class="text-xs text-gray-500">SYSTEM ONLINE</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="pt-32 pb-20 px-4 relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-b from-blue-900/10 to-transparent pointer-events-none"></div>
+        <div class="max-w-7xl mx-auto">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div class="space-y-6 z-10">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs">
+                        <span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
+                        VTuber Project // Live2D Production
+                    </div>
+                    <h1 class="text-5xl md:text-7xl font-black font-tech text-white leading-tight">
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-400 to-purple-400 neon-text">Riko</span>
+                        <span class="block text-2xl md:text-3xl mt-2 text-gray-400 font-normal font-sans">莉子 / CAT-01</span>
+                    </h1>
+                    <p class="text-xl text-gray-400 font-light">
+                        猫系科技观察员 <span class="text-blue-400">|</span> 系統啟動中...
+                    </p>
+                    <div class="flex flex-wrap gap-3">
+                        <span class="tag px-4 py-2 rounded-lg text-sm text-blue-300">🐱 猫耳</span>
+                        <span class="tag px-4 py-2 rounded-lg text-sm text-blue-300">👓 眼镜</span>
+                        <span class="tag px-4 py-2 rounded-lg text-sm text-blue-300">💻 科技</span>
+                        <span class="tag px-4 py-2 rounded-lg text-sm text-blue-300">🔬 观察员</span>
+                    </div>
+                    <div class="flex gap-4 pt-4">
+                        <button onclick="document.getElementById('profile').scrollIntoView({behavior:'smooth'})" 
+                                class="px-8 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg font-medium text-white hover:shadow-lg hover:shadow-blue-500/30 transition transform hover:-translate-y-0.5">
+                            查看档案
+                        </button>
+                        <button onclick="document.getElementById('roadmap').scrollIntoView({behavior:'smooth'})" 
+                                class="px-8 py-3 border border-blue-500/30 rounded-lg font-medium text-blue-400 hover:bg-blue-500/10 transition">
+                            制作进度
+                        </button>
+                    </div>
+                </div>
+                <div class="relative z-10">
+                    <div class="absolute inset-0 bg-blue-500/20 blur-3xl rounded-full"></div>
+                    <div class="image-frame rounded-2xl animate-float">
+                        <img src="/mnt/agents/upload/1000302347.png" 
+                             alt="Riko 角色设定" 
+                             class="w-full rounded-2xl shadow-2xl shadow-blue-900/50"
+                             onerror="this.parentElement.innerHTML='<div class=\'w-full h-96 bg-gray-800 rounded-2xl flex items-center justify-center text-gray-500\'>🐱 Riko 主视觉图<br>请替换为实际图片路径</div>'">
+                    </div>
+                    <!-- 悬浮信息卡片 -->
+                    <div class="absolute -bottom-6 -left-6 glass-panel rounded-xl p-4 max-w-xs animate-pulse-slow">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-lg">🐾</div>
+                            <div>
+                                <div class="text-sm font-bold text-white">模型状态</div>
+                                <div class="text-xs text-blue-400">PSD 拆分阶段</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 角色档案 -->
+    <section id="profile" class="py-20 px-4">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex items-center gap-4 mb-12">
+                <div class="h-px flex-1 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent"></div>
+                <h2 class="text-3xl font-bold font-tech text-white">角色档案 <span class="text-blue-400 text-lg">// PROFILE</span></h2>
+                <div class="h-px flex-1 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent"></div>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6 mb-12">
+                <div class="glass-panel rounded-2xl p-6 stat-card">
+                    <div class="text-3xl mb-2">🎭</div>
+                    <div class="text-sm text-gray-400 mb-1">角色类型</div>
+                    <div class="text-lg font-bold text-white">猫系科技观察员</div>
+                    <div class="text-xs text-blue-400 mt-2">VTuber / Live2D</div>
+                </div>
+                <div class="glass-panel rounded-2xl p-6 stat-card">
+                    <div class="text-3xl mb-2">📋</div>
+                    <div class="text-sm text-gray-400 mb-1">编号</div>
+                    <div class="text-lg font-bold text-white font-tech">CAT-01</div>
+                    <div class="text-xs text-blue-400 mt-2">Research Unit</div>
+                </div>
+                <div class="glass-panel rounded-2xl p-6 stat-card">
+                    <div class="text-3xl mb-2">🎯</div>
+                    <div class="text-sm text-gray-400 mb-1">当前阶段</div>
+                    <div class="text-lg font-bold text-white">PSD 拆分</div>
+                    <div class="text-xs text-blue-400 mt-2">第一阶段进行中</div>
+                </div>
+            </div>
+
+            <div class="glass-panel rounded-2xl p-8">
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                            <span class="w-1 h-6 bg-blue-500 rounded-full"></span>
+                            基础设定
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center py-2 border-b border-gray-800">
+                                <span class="text-gray-400">姓名</span>
+                                <span class="text-white font-medium">Riko（莉子）</span>
+                            </div>
+                            <div class="flex justify-between items-center py-2 border-b border-gray-800">
+                                <span class="text-gray-400">型号</span>
+                                <span class="text-white font-medium font-tech">CAT-01</span>
+                            </div>
+                            <div class="flex justify-between items-center py-2 border-b border-gray-800">
+                                <span class="text-gray-400">身份</span>
+                                <span class="text-white font-medium">网络观察员 / AI实验室助手</span>
+                            </div>
+                            <div class="flex justify-between items-center py-2 border-b border-gray-800">
+                                <span class="text-gray-400">兴趣</span>
+                                <span class="text-white font-medium">游戏、科技研究、记录人类行为</span>
+                            </div>
+                            <div class="flex justify-between items-center py-2">
+                                <span class="text-gray-400">性格</span>
+                                <span class="text-white font-medium">温柔好奇、理性细心、偶尔天然呆</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                            <span class="w-1 h-6 bg-purple-500 rounded-full"></span>
+                            外观关键词
+                        </h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-16 h-16 rounded-lg bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 flex items-center justify-center text-2xl">🐱</div>
+                                <div>
+                                    <div class="text-white font-medium">猫耳</div>
+                                    <div class="text-xs text-gray-500">可动 / 情绪反馈</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="w-16 h-16 rounded-lg bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 flex items-center justify-center text-2xl">👓</div>
+                                <div>
+                                    <div class="text-white font-medium">眼镜</div>
+                                    <div class="text-xs text-gray-500">研究员气质 / 可反光</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="w-16 h-16 rounded-lg bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 flex items-center justify-center text-2xl">🖤</div>
+                                <div>
+                                    <div class="text-white font-medium">黑色T恤</div>
+                                    <div class="text-xs text-gray-500">KUSA WWW 字样</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="w-16 h-16 rounded-lg bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 flex items-center justify-center text-2xl">🎀</div>
+                                <div>
+                                    <div class="text-white font-medium">双马尾</div>
+                                    <div class="text-xs text-gray-500">物理摆动 / 猫系活泼</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 配色方案 -->
+                <div class="mt-8 pt-8 border-t border-gray-800">
+                    <h3 class="text-lg font-bold text-white mb-4">配色方案</h3>
+                    <div class="flex flex-wrap gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-lg shadow-lg" style="background: #1E1E1E;"></div>
+                            <div class="text-xs">
+                                <div class="text-gray-300">#1E1E1E</div>
+                                <div class="text-gray-500">主背景</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-lg shadow-lg" style="background: #3A3A3A;"></div>
+                            <div class="text-xs">
+                                <div class="text-gray-300">#3A3A3A</div>
+                                <div class="text-gray-500">辅助灰</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-lg shadow-lg" style="background: #6A6A6A;"></div>
+                            <div class="text-xs">
+                                <div class="text-gray-300">#6A6A6A</div>
+                                <div class="text-gray-500">中性灰</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-lg shadow-lg" style="background: #FFFFFF;"></div>
+                            <div class="text-xs">
+                                <div class="text-gray-300">#FFFFFF</div>
+                                <div class="text-gray-500">纯白</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-lg shadow-lg" style="background: #6CB6FF;"></div>
+                            <div class="text-xs">
+                                <div class="text-gray-300">#6CB6FF</div>
+                                <div class="text-gray-500">科技蓝</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-lg shadow-lg" style="background: #A8D8FF;"></div>
+                            <div class="text-xs">
+                                <div class="text-gray-300">#A8D8FF</div>
+                                <div class="text-gray-500">浅蓝</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 动作参考 -->
+    <section id="motion" class="py-20 px-4 bg-gradient-to-b from-transparent via-blue-900/5 to-transparent">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex items-center gap-4 mb-12">
+                <div class="h-px flex-1 bg-gradient-to-r from-transparent via-purple-500/50 to-transparent"></div>
+                <h2 class="text-3xl font-bold font-tech text-white">动作参考 <span class="text-purple-400 text-lg">// MOTION</span></h2>
+                <div class="h-px flex-1 bg-gradient-to-r from-transparent via-purple-500/50 to-transparent"></div>
+            </div>
+
+            <!-- 开场动作 -->
+            <div class="mb-12">
+                <div class="flex items-center gap-3 mb-6">
+                    <span class="px-3 py-1 rounded-full bg-blue-500/20 text-blue-400 text-xs border border-blue-500/30">OPENING</span>
+                    <h3 class="text-xl font-bold text-white">开场动作流程</h3>
+                    <span class="text-xs text-gray-500">时长参考: 约 8~10 秒</span>
+                </div>
+                <div class="glass-panel rounded-2xl p-4 image-frame">
+                    <img src="/mnt/agents/upload/1000302349.png" 
+                         alt="Riko 开场动作流程" 
+                         class="w-full rounded-xl"
+                         onerror="this.parentElement.innerHTML='<div class=\'w-full h-64 bg-gray-800 rounded-xl flex items-center justify-center text-gray-500\'>📸 开场动作流程图<br>请替换为实际图片路径</div>'">
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mt-4">
+                    <div class="glass-panel rounded-lg p-3 text-center">
+                        <div class="text-lg mb-1">1️⃣</div>
+                        <div class="text-xs text-gray-300">睁眼·启动</div>
+                    </div>
+                    <div class="glass-panel rounded-lg p-3 text-center">
+                        <div class="text-lg mb-1">2️⃣</div>
+                        <div class="text-xs text-gray-300">系统启动</div>
+                    </div>
+                    <div class="glass-panel rounded-lg p-3 text-center">
+                        <div class="text-lg mb-1">3️⃣</div>
+                        <div class="text-xs text-gray-300">打招呼</div>
+                    </div>
+                    <div class="glass-panel rounded-lg p-3 text-center">
+                        <div class="text-lg mb-1">4️⃣</div>
+                        <div class="text-xs text-gray-300">自我介绍</div>
+                    </div>
+                    <div class="glass-panel rounded-lg p-3 text-center">
+                        <div class="text-lg mb-1">5️⃣</div>
+                        <div class="text-xs text-gray-300">兴趣展示</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 结束动作 -->
+            <div>
+                <div class="flex items-center gap-3 mb-6">
+                    <span class="px-3 py-1 rounded-full bg-pink-500/20 text-pink-400 text-xs border border-pink-500/30">ENDING</span>
+                    <h3 class="text-xl font-bold text-white">结束动作流程</h3>
+                    <span class="text-xs text-gray-500">时长参考: 约 8~12 秒</span>
+                </div>
+                <div class="glass-panel rounded-2xl p-4 image-frame">
+                    <img src="/mnt/agents/upload/1000302350.png" 
+                         alt="Riko 结束动作流程" 
+                         class="w-full rounded-xl"
+                         onerror="this.parentElement.innerHTML='<div class=\'w-full h-64 bg-gray-800 rounded-xl flex items-center justify-center text-gray-500\'>📸 结束动作流程图<br>请替换为实际图片路径</div>'">
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mt-4">
+                    <div class="glass-panel rounded-lg p-3 text-center">
+                        <div class="text-lg mb-1">1️⃣</div>
+                        <div class="text-xs text-gray-300">停下操作</div>
+                    </div>
+                    <div class="glass-panel rounded-lg p-3 text-center">
+                        <div class="text-lg mb-1">2️⃣</div>
+                        <div class="text-xs text-gray-300">真心感谢</div>
+                    </div>
+                    <div class="glass-panel rounded-lg p-3 text-center">
+                        <div class="text-lg mb-1">3️⃣</div>
+                        <div class="text-xs text-gray-300">挥手告别</div>
+                    </div>
+                    <div class="glass-panel rounded-lg p-3 text-center">
+                        <div class="text-lg mb-1">4️⃣</div>
+                        <div class="text-xs text-gray-300">眨眼/比心</div>
+                    </div>
+                    <div class="glass-panel rounded-lg p-3 text-center">
+                        <div class="text-lg mb-1">5️⃣</div>
+                        <div class="text-xs text-gray-300">期待下次</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 直播间背景 -->
+    <section id="background" class="py-20 px-4">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex items-center gap-4 mb-12">
+                <div class="h-px flex-1 bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent"></div>
+                <h2 class="text-3xl font-bold font-tech text-white">直播间背景 <span class="text-cyan-400 text-lg">// STUDIO</span></h2>
+                <div class="h-px flex-1 bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent"></div>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2">
+                    <div class="glass-panel rounded-2xl p-4 image-frame">
+                        <img src="/mnt/agents/upload/1000302351.png" 
+                             alt="Riko 直播间背景风格" 
+                             class="w-full rounded-xl"
+                             onerror="this.parentElement.innerHTML='<div class=\'w-full h-96 bg-gray-800 rounded-xl flex items-center justify-center text-gray-500\'>📸 直播间背景设定图<br>请替换为实际图片路径</div>'">
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div class="glass-panel rounded-xl p-5">
+                        <h4 class="font-bold text-white mb-3 flex items-center gap-2">
+                            <span class="text-cyan-400">🎨</span> 整体风格关键词
+                        </h4>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-2 py-1 rounded bg-cyan-500/10 text-cyan-400 text-xs border border-cyan-500/20">科技感</span>
+                            <span class="px-2 py-1 rounded bg-cyan-500/10 text-cyan-400 text-xs border border-cyan-500/20">未来感</span>
+                            <span class="px-2 py-1 rounded bg-cyan-500/10 text-cyan-400 text-xs border border-cyan-500/20">舒适</span>
+                            <span class="px-2 py-1 rounded bg-cyan-500/10 text-cyan-400 text-xs border border-cyan-500/20">整洁</span>
+                            <span class="px-2 py-1 rounded bg-cyan-500/10 text-cyan-400 text-xs border border-cyan-500/20">夜晚</span>
+                            <span class="px-2 py-1 rounded bg-cyan-500/10 text-cyan-400 text-xs border border-cyan-500/20">冷色调</span>
+                        </div>
+                    </div>
+                    <div class="glass-panel rounded-xl p-5">
+                        <h4 class="font-bold text-white mb-3 flex items-center gap-2">
+                            <span class="text-purple-400">✨</span> 核心元素
+                        </h4>
+                        <ul class="space-y-2 text-sm text-gray-400">
+                            <li class="flex items-center gap-2"><span class="text-cyan-400">▸</span> 猫元素 / 研究员主题</li>
+                            <li class="flex items-center gap-2"><span class="text-cyan-400">▸</span> 轻松 / 陪伴感</li>
+                            <li class="flex items-center gap-2"><span class="text-cyan-400">▸</span> 全息屏 / 数据面板</li>
+                            <li class="flex items-center gap-2"><span class="text-cyan-400">▸</span> 夜景窗户 / 城市灯光</li>
+                        </ul>
+                    </div>
+                    <div class="glass-panel rounded-xl p-5">
+                        <h4 class="font-bold text-white mb-3 flex items-center gap-2">
+                            <span class="text-pink-400">🎯</span> 适配场景
+                        </h4>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-400">游戏直播</span>
+                                <span class="text-green-400">70%</span>
+                            </div>
+                            <div class="w-full bg-gray-800 rounded-full h-1.5">
+                                <div class="bg-gradient-to-r from-blue-500 to-cyan-500 h-1.5 rounded-full" style="width: 70%"></div>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-400">科技杂谈</span>
+                                <span class="text-blue-400">20%</span>
+                            </div>
+                            <div class="w-full bg-gray-800 rounded-full h-1.5">
+                                <div class="bg-gradient-to-r from-blue-500 to-cyan-500 h-1.5 rounded-full" style="width: 20%"></div>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-400">其他</span>
+                                <span class="text-purple-400">10%</span>
+                            </div>
+                            <div class="w-full bg-gray-800 rounded-full h-1.5">
+                                <div class="bg-gradient-to-r from-blue-500 to-cyan-500 h-1.5 rounded-full" style="width: 10%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 制作路线图 -->
+    <section id="roadmap" class="py-20 px-4 bg-gradient-to-b from-transparent via-blue-900/5 to-transparent">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex items-center gap-4 mb-12">
+                <div class="h-px flex-1 bg-gradient-to-r from-transparent via-green-500/50 to-transparent"></div>
+                <h2 class="text-3xl font-bold font-tech text-white">制作路线 <span class="text-green-400 text-lg">// ROADMAP</span></h2>
+                <div class="h-px flex-1 bg-gradient-to-r from-transparent via-green-500/50 to-transparent"></div>
+            </div>
+
+            <div class="relative">
+                <!-- 时间线 -->
+                <div class="absolute left-4 md:left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-blue-500 via-purple-500 to-transparent md:-translate-x-px"></div>
+
+                <!-- 阶段1 -->
+                <div class="relative mb-12 md:flex items-center">
+                    <div class="md:w-1/2 md:pr-12 md:text-right mb-4 md:mb-0">
+                        <div class="glass-panel rounded-xl p-6 inline-block text-left md:text-right">
+                            <div class="flex items-center gap-2 mb-2 md:justify-end">
+                                <span class="px-2 py-0.5 rounded bg-green-500/20 text-green-400 text-xs border border-green-500/30">进行中</span>
+                                <h3 class="text-lg font-bold text-white">第一阶段：素材准备</h3>
+                            </div>
+                            <p class="text-sm text-gray-400 mb-3">AI 处理立绘 → 补全头发/身体 → 修正五官结构 → 制作不同表情</p>
+                            <div class="flex flex-wrap gap-2 md:justify-end">
+                                <span class="tag px-2 py-1 rounded text-xs">立绘整理</span>
+                                <span class="tag px-2 py-1 rounded text-xs">表情差分</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="absolute left-4 md:left-1/2 w-4 h-4 rounded-full bg-green-500 border-4 border-cat-dark md:-translate-x-2 z-10 shadow-lg shadow-green-500/50"></div>
+                    <div class="md:w-1/2 md:pl-12 hidden md:block"></div>
+                </div>
+
+                <!-- 阶段2 -->
+                <div class="relative mb-12 md:flex items-center">
+                    <div class="md:w-1/2 md:pr-12 hidden md:block"></div>
+                    <div class="absolute left-4 md:left-1/2 w-4 h-4 rounded-full bg-gray-600 border-4 border-cat-dark md:-translate-x-2 z-10"></div>
+                    <div class="md:w-1/2 md:pl-12 mb-4 md:mb-0 md:mt-0 mt-8">
+                        <div class="glass-panel rounded-xl p-6">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="px-2 py-0.5 rounded bg-gray-500/20 text-gray-400 text-xs border border-gray-500/30">待开始</span>
+                                <h3 class="text-lg font-bold text-white">第二阶段：PSD 拆分</h3>
+                            </div>
+                            <p class="text-sm text-gray-400 mb-3">头部拆分 → 面部拆分 → 身体拆分 → 动态重点标记</p>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="tag px-2 py-1 rounded text-xs">头发分层</span>
+                                <span class="tag px-2 py-1 rounded text-xs">五官独立</span>
+                                <span class="tag px-2 py-1 rounded text-xs">身体部件</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 阶段3 -->
+                <div class="relative mb-12 md:flex items-center">
+                    <div class="md:w-1/2 md:pr-12 md:text-right mb-4 md:mb-0">
+                        <div class="glass-panel rounded-xl p-6 inline-block text-left md:text-right">
+                            <div class="flex items-center gap-2 mb-2 md:justify-end">
+                                <span class="px-2 py-0.5 rounded bg-gray-500/20 text-gray-400 text-xs border border-gray-500/30">待开始</span>
+                                <h3 class="text-lg font-bold text-white">第三阶段：Live2D 绑定</h3>
+                            </div>
+                            <p class="text-sm text-gray-400 mb-3">参数设定 → 面部绑定 → 身体绑定 → 物理效果</p>
+                            <div class="flex flex-wrap gap-2 md:justify-end">
+                                <span class="tag px-2 py-1 rounded text-xs">头部 XYZ</span>
+                                <span class="tag px-2 py-1 rounded text-xs">眼睛跟随</span>
+                                <span class="tag px-2 py-1 rounded text-xs">嘴型同步</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="absolute left-4 md:left-1/2 w-4 h-4 rounded-full bg-gray-600 border-4 border-cat-dark md:-translate-x-2 z-10"></div>
+                    <div class="md:w-1/2 md:pl-12 hidden md:block"></div>
+                </div>
+
+                <!-- 阶段4 -->
+                <div class="relative mb-12 md:flex items-center">
+                    <div class="md:w-1/2 md:pr-12 hidden md:block"></div>
+                    <div class="absolute left-4 md:left-1/2 w-4 h-4 rounded-full bg-gray-600 border-4 border-cat-dark md:-translate-x-2 z-10"></div>
+                    <div class="md:w-1/2 md:pl-12 mb-4 md:mb-0 md:mt-0 mt-8">
+                        <div class="glass-panel rounded-xl p-6">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="px-2 py-0.5 rounded bg-gray-500/20 text-gray-400 text-xs border border-gray-500/30">待开始</span>
+                                <h3 class="text-lg font-bold text-white">第四阶段：特色动作</h3>
+                            </div>
+                            <p class="text-sm text-gray-400 mb-3">研究模式 → 猫耳开心 → 直播结束 POSE → 表情快捷键</p>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="tag px-2 py-1 rounded text-xs">开场动作</span>
+                                <span class="tag px-2 py-1 rounded text-xs">结束动作</span>
+                                <span class="tag px-2 py-1 rounded text-xs">快捷键</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 阶段5 -->
+                <div class="relative md:flex items-center">
+                    <div class="md:w-1/2 md:pr-12 md:text-right mb-4 md:mb-0">
+                        <div class="glass-panel rounded-xl p-6 inline-block text-left md:text-right">
+                            <div class="flex items-center gap-2 mb-2 md:justify-end">
+                                <span class="px-2 py-0.5 rounded bg-gray-500/20 text-gray-400 text-xs border border-gray-500/30">待开始</span>
+                                <h3 class="text-lg font-bold text-white">第五阶段：测试 & 出道</h3>
+                            </div>
+                            <p class="text-sm text-gray-400 mb-3">VTube Studio 测试 → OBS 整合 → 直播测试</p>
+                            <div class="flex flex-wrap gap-2 md:justify-end">
+                                <span class="tag px-2 py-1 rounded text-xs">面捕测试</span>
+                                <span class="tag px-2 py-1 rounded text-xs">OBS 配置</span>
+                                <span class="tag px-2 py-1 rounded text-xs">🎉 出道</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="absolute left-4 md:left-1/2 w-4 h-4 rounded-full bg-gray-600 border-4 border-cat-dark md:-translate-x-2 z-10"></div>
+                    <div class="md:w-1/2 md:pl-12 hidden md:block"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 工具链推荐 -->
+    <section class="py-20 px-4">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex items-center gap-4 mb-12">
+                <div class="h-px flex-1 bg-gradient-to-r from-transparent via-yellow-500/50 to-transparent"></div>
+                <h2 class="text-3xl font-bold font-tech text-white">工具链 <span class="text-yellow-400 text-lg">// TOOLS</span></h2>
+                <div class="h-px flex-1 bg-gradient-to-r from-transparent via-yellow-500/50 to-transparent"></div>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="glass-panel rounded-2xl p-6 hover:border-blue-500/50 transition group">
+                    <div class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition">🎨</div>
+                    <h3 class="text-lg font-bold text-white mb-2">Photoshop / Krita</h3>
+                    <p class="text-sm text-gray-400 mb-4">PSD 分层绘制与整理，Live2D 素材准备的核心工具</p>
+                    <div class="text-xs text-blue-400">制作阶段必备</div>
+                </div>
+                <div class="glass-panel rounded-2xl p-6 hover:border-purple-500/50 transition group">
+                    <div class="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition">🧊</div>
+                    <h3 class="text-lg font-bold text-white mb-2">Live2D Cubism Editor</h3>
+                    <p class="text-sm text-gray-400 mb-4">官方建模软件，进行网格变形、骨骼绑定、物理演算</p>
+                    <div class="text-xs text-purple-400">核心建模工具</div>
+                </div>
+                <div class="glass-panel rounded-2xl p-6 hover:border-cyan-500/50 transition group">
+                    <div class="w-12 h-12 rounded-xl bg-cyan-500/20 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition">📹</div>
+                    <h3 class="text-lg font-bold text-white mb-2">VTube Studio</h3>
+                    <p class="text-sm text-gray-400 mb-4">面捕直播软件，导入 Live2D 模型进行实时捕捉与直播</p>
+                    <div class="text-xs text-cyan-400">直播阶段使用</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="py-12 px-4 border-t border-gray-800">
+        <div class="max-w-7xl mx-auto text-center">
+            <div class="flex items-center justify-center gap-3 mb-4">
+                <span class="text-2xl">🐱</span>
+                <span class="font-tech text-xl font-bold text-blue-400">Riko</span>
+                <span class="text-xs text-gray-600 border border-gray-800 rounded px-2 py-0.5">CAT-01</span>
+            </div>
+            <p class="text-sm text-gray-500 mb-2">猫系科技观察员 // 系统启动中...</p>
+            <p class="text-xs text-gray-600">Live2D Production Project | Powered by AI & Creativity</p>
+            <div class="mt-6 flex justify-center gap-4 text-xs text-gray-600">
+                <span>🐾 猫耳加载中</span>
+                <span>👓 眼镜反光测试</span>
+                <span>💻 系统正常</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // 滚动显示动画
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.glass-panel').forEach((el, i) => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = `opacity 0.6s ease ${i * 0.05}s, transform 0.6s ease ${i * 0.05}s`;
+            observer.observe(el);
+        });
+
+        // 鼠标跟随效果（Hero区域）
+        const hero = document.querySelector('section:first-of-type');
+        if (hero) {
+            hero.addEventListener('mousemove', (e) => {
+                const rect = hero.getBoundingClientRect();
+                const x = (e.clientX - rect.left) / rect.width - 0.5;
+                const y = (e.clientY - rect.top) / rect.height - 0.5;
+
+                const img = hero.querySelector('img');
+                if (img) {
+                    img.style.transform = `translate(${x * 10}px, ${y * 10}px) scale(1.02)`;
+                    img.style.transition = 'transform 0.3s ease-out';
+                }
+            });
+
+            hero.addEventListener('mouseleave', () => {
+                const img = hero.querySelector('img');
+                if (img) {
+                    img.style.transform = 'translate(0, 0) scale(1)';
+                }
+            });
+        }
+    </script>
+</body>
+</html>
